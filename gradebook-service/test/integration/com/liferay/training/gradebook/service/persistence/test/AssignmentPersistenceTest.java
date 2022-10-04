@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.transaction.Propagation;
@@ -123,6 +124,8 @@ public class AssignmentPersistenceTest {
 
 		Assignment newAssignment = _persistence.create(pk);
 
+		newAssignment.setUuid(RandomTestUtil.randomString());
+
 		newAssignment.setTitle(RandomTestUtil.randomString());
 
 		newAssignment.setDescription(RandomTestUtil.randomString());
@@ -141,11 +144,21 @@ public class AssignmentPersistenceTest {
 
 		newAssignment.setModifiedDate(RandomTestUtil.nextDate());
 
+		newAssignment.setStatus(RandomTestUtil.nextInt());
+
+		newAssignment.setStatusByUserId(RandomTestUtil.nextLong());
+
+		newAssignment.setStatusByUserName(RandomTestUtil.randomString());
+
+		newAssignment.setStatusDate(RandomTestUtil.nextDate());
+
 		_assignments.add(_persistence.update(newAssignment));
 
 		Assignment existingAssignment = _persistence.findByPrimaryKey(
 			newAssignment.getPrimaryKey());
 
+		Assert.assertEquals(
+			existingAssignment.getUuid(), newAssignment.getUuid());
 		Assert.assertEquals(
 			existingAssignment.getAssignmentId(),
 			newAssignment.getAssignmentId());
@@ -171,6 +184,44 @@ public class AssignmentPersistenceTest {
 		Assert.assertEquals(
 			Time.getShortTimestamp(existingAssignment.getModifiedDate()),
 			Time.getShortTimestamp(newAssignment.getModifiedDate()));
+		Assert.assertEquals(
+			existingAssignment.getStatus(), newAssignment.getStatus());
+		Assert.assertEquals(
+			existingAssignment.getStatusByUserId(),
+			newAssignment.getStatusByUserId());
+		Assert.assertEquals(
+			existingAssignment.getStatusByUserName(),
+			newAssignment.getStatusByUserName());
+		Assert.assertEquals(
+			Time.getShortTimestamp(existingAssignment.getStatusDate()),
+			Time.getShortTimestamp(newAssignment.getStatusDate()));
+	}
+
+	@Test
+	public void testCountByUuid() throws Exception {
+		_persistence.countByUuid("");
+
+		_persistence.countByUuid("null");
+
+		_persistence.countByUuid((String)null);
+	}
+
+	@Test
+	public void testCountByUUID_G() throws Exception {
+		_persistence.countByUUID_G("", RandomTestUtil.nextLong());
+
+		_persistence.countByUUID_G("null", 0L);
+
+		_persistence.countByUUID_G((String)null, 0L);
+	}
+
+	@Test
+	public void testCountByUuid_C() throws Exception {
+		_persistence.countByUuid_C("", RandomTestUtil.nextLong());
+
+		_persistence.countByUuid_C("null", 0L);
+
+		_persistence.countByUuid_C((String)null, 0L);
 	}
 
 	@Test
@@ -203,12 +254,19 @@ public class AssignmentPersistenceTest {
 			QueryUtil.ALL_POS, QueryUtil.ALL_POS, getOrderByComparator());
 	}
 
+	@Test
+	public void testFilterFindByGroupId() throws Exception {
+		_persistence.filterFindByGroupId(
+			0, QueryUtil.ALL_POS, QueryUtil.ALL_POS, getOrderByComparator());
+	}
+
 	protected OrderByComparator<Assignment> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create(
-			"Gradebook_Assignment", "assignmentId", true, "title", true,
-			"description", true, "dueDate", true, "groupId", true, "companyId",
-			true, "userId", true, "userName", true, "createDate", true,
-			"modifiedDate", true);
+			"Gradebook_Assignment", "uuid", true, "assignmentId", true, "title",
+			true, "description", true, "dueDate", true, "groupId", true,
+			"companyId", true, "userId", true, "userName", true, "createDate",
+			true, "modifiedDate", true, "status", true, "statusByUserId", true,
+			"statusByUserName", true, "statusDate", true);
 	}
 
 	@Test
@@ -420,10 +478,31 @@ public class AssignmentPersistenceTest {
 		Assert.assertEquals(0, result.size());
 	}
 
+	@Test
+	public void testResetOriginalValues() throws Exception {
+		Assignment newAssignment = addAssignment();
+
+		_persistence.clearCache();
+
+		Assignment existingAssignment = _persistence.findByPrimaryKey(
+			newAssignment.getPrimaryKey());
+
+		Assert.assertEquals(
+			existingAssignment.getUuid(),
+			ReflectionTestUtil.invoke(
+				existingAssignment, "getOriginalUuid", new Class<?>[0]));
+		Assert.assertEquals(
+			Long.valueOf(existingAssignment.getGroupId()),
+			ReflectionTestUtil.<Long>invoke(
+				existingAssignment, "getOriginalGroupId", new Class<?>[0]));
+	}
+
 	protected Assignment addAssignment() throws Exception {
 		long pk = RandomTestUtil.nextLong();
 
 		Assignment assignment = _persistence.create(pk);
+
+		assignment.setUuid(RandomTestUtil.randomString());
 
 		assignment.setTitle(RandomTestUtil.randomString());
 
@@ -442,6 +521,14 @@ public class AssignmentPersistenceTest {
 		assignment.setCreateDate(RandomTestUtil.nextDate());
 
 		assignment.setModifiedDate(RandomTestUtil.nextDate());
+
+		assignment.setStatus(RandomTestUtil.nextInt());
+
+		assignment.setStatusByUserId(RandomTestUtil.nextLong());
+
+		assignment.setStatusByUserName(RandomTestUtil.randomString());
+
+		assignment.setStatusDate(RandomTestUtil.nextDate());
 
 		_assignments.add(_persistence.update(assignment));
 

@@ -12,6 +12,7 @@
 <%@ taglib prefix="liferay-portlet" uri="http://liferay.com/tld/portlet"%>
 <%@ taglib prefix="liferay-theme" uri="http://liferay.com/tld/theme"%>
 <%@ taglib prefix="liferay-ui" uri="http://liferay.com/tld/ui"%>
+<%@ taglib prefix="liferay-security" uri="http://liferay.com/tld/security" %>
 
 <%@ page import="java.util.Date"%>
 <%@ page import="javax.portlet.WindowState"%>
@@ -24,6 +25,11 @@
 <%@ page
 	import="com.liferay.training.gradebook.web.constants.MVCCommandNames"%>
 <%@ page import="com.liferay.portal.kernel.servlet.SessionErrors"%>
+
+<%@ page import="com.liferay.asset.kernel.model.AssetRenderer"%>
+<%@ page import="com.liferay.portal.kernel.util.WebKeys"%>
+
+
 
 
 <liferay-frontend:defineObjects />

@@ -19,6 +19,8 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.training.gradebook.web.constants.GradebookPortletKeys;
 import com.liferay.training.gradebook.web.constants.MVCCommandNames;
+import com.liferay.training.gradebook.web.internal.security.permission.resource.AssignmentTopLevelPermission;
+
 import java.util.List;
 import javax.portlet.PortletException;
 import javax.portlet.PortletURL;
@@ -32,7 +34,7 @@ import javax.servlet.http.HttpServletRequest;
  * @author liferay
  */
 public class AssignmentsManagementToolbarDisplayContext extends BaseManagementToolbarDisplayContext {
-	
+
 	public AssignmentsManagementToolbarDisplayContext(
 			LiferayPortletRequest liferayPortletRequest,
 			LiferayPortletResponse liferayPortletResponse,
@@ -44,14 +46,19 @@ public class AssignmentsManagementToolbarDisplayContext extends BaseManagementTo
 		_themeDisplay = (ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 	}
-	/**
-	 * Returns the creation menu for the toolbar
-	 * (plus sign on the management toolbar).
-	 *
-	 * @return creation menu
-	 */
 	public CreationMenu getCreationMenu() {
+
+		// Check if user has permissions to add assignments.
+
+		if (!AssignmentTopLevelPermission.contains(
+				_themeDisplay.getPermissionChecker(),
+				_themeDisplay.getScopeGroupId(), "ADD_ENTRY")) {
+
+			return null;
+		}
+
 		// Create the menu.
+
 		return new CreationMenu() {
 			{
 				addDropdownItem(
@@ -66,7 +73,7 @@ public class AssignmentsManagementToolbarDisplayContext extends BaseManagementTo
 			}
 		}; 
 	}
-	
+
 	@Override
 	public String getClearResultsURL() {
 		return getSearchActionURL();

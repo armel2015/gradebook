@@ -60,6 +60,7 @@ public class AddAssignmentMVCActionCommand extends BaseMVCActionCommand {
 					themeDisplay.getScopeGroupId(), titleMap, descriptionMap, dueDate,
 					serviceContext);
 			// Set the success message.
+			
 			SessionMessages.add(actionRequest, "assignmentAdded");
 			sendRedirect(actionRequest, actionResponse);
 		}
@@ -71,6 +72,7 @@ public class AddAssignmentMVCActionCommand extends BaseMVCActionCommand {
 		}
 		catch (PortalException pe) {
 			// Set error messages from the service layer.
+			
 			SessionErrors.add(actionRequest, "serviceErrorDetails", pe);
 			actionResponse.setRenderParameter(
 					"mvcRenderCommandName", MVCCommandNames.EDIT_ASSIGNMENT); 

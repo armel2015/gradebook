@@ -7,7 +7,7 @@
 	<!--<entity data-source="sampleDataSource" local-service="true" name="Foo" 
 		remote-service="false" session-factory="sampleSessionFactory" table="foo" 
 		tx-manager="sampleTransactionManager uuid="true""> -->
-	<entity name="Assignment" local-service="true">
+	<entity name="Assignment" local-service="true" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
 
@@ -28,6 +28,14 @@
 		<column name="userName" type="String"></column>
 		<column name="createDate" type="Date"></column>
 		<column name="modifiedDate" type="Date"></column>
+		
+		
+		<column name="status" type="int" />
+	    <column name="statusByUserId" type="long" />
+	    <column name="statusByUserName" type="String" />
+	    <column name="statusDate" type="Date" />
+		
+		
 
 		<!-- Order -->
 

@@ -20,8 +20,10 @@ import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.training.gradebook.model.Assignment;
@@ -49,7 +51,7 @@ public class AssignmentLocalServiceImpl extends AssignmentLocalServiceBaseImpl {
 			long groupId, Map<Locale, String> titleMap, Map<Locale, String> descriptionMap,
 			Date dueDate, ServiceContext serviceContext)
 					throws PortalException {
-		
+
 		_assignmentValidator.validate(titleMap, descriptionMap, dueDate);
 
 		// Get group and user.
@@ -83,14 +85,47 @@ public class AssignmentLocalServiceImpl extends AssignmentLocalServiceBaseImpl {
 
 		// Persist assignment to database.
 
+		// Add permission resources.
+
+		boolean portletActions = false;
+		boolean addGroupPermissions = true;
+		boolean addGuestPermissions = true;
+
+		resourceLocalService.addResources(
+				group.getCompanyId(), groupId, userId, Assignment.class.getName(),
+				assignment.getAssignmentId(), portletActions, addGroupPermissions,
+				addGuestPermissions);
+		
+		updateAsset(assignment, serviceContext);
+
+
 		return super.addAssignment(assignment);
+
+	}
+
+	public Assignment deleteAssignment(Assignment assignment)
+			throws PortalException {
+
+		// Delete permission resources.
+
+		resourceLocalService.deleteResource(
+				assignment, ResourceConstants.SCOPE_INDIVIDUAL);
+
+		// Delete the Asset resource.
+
+		assetEntryLocalService.deleteEntry(
+				Assignment.class.getName(), assignment.getAssignmentId());
+
+		// Delete the Assignment
+
+		return super.deleteAssignment(assignment);
 	}
 
 	public Assignment updateAssignment(
 			long assignmentId, Map<Locale, String> titleMap, Map<Locale, String> descriptionMap,
 			Date dueDate, ServiceContext serviceContext)
 					throws PortalException {
-		
+
 		_assignmentValidator.validate(titleMap, descriptionMap, dueDate);
 
 		// Get the Assignment by id.
@@ -105,8 +140,11 @@ public class AssignmentLocalServiceImpl extends AssignmentLocalServiceBaseImpl {
 		assignment.setDescriptionMap(descriptionMap);
 
 		assignment = super.updateAssignment(assignment);
+		
+		updateAsset(assignment, serviceContext);
 
-		return assignment;
+
+		return super.addAssignment(assignment);
 	}
 
 	public List<Assignment> getAssignmentsByGroupId(long groupId) {
@@ -176,6 +214,24 @@ public class AssignmentLocalServiceImpl extends AssignmentLocalServiceBaseImpl {
 				"Not supported.");
 	}
 
+	private void updateAsset(
+			Assignment assignment, ServiceContext serviceContext)
+					throws PortalException {
+
+		assetEntryLocalService.updateEntry(
+				serviceContext.getUserId(), serviceContext.getScopeGroupId(),
+				assignment.getCreateDate(), assignment.getModifiedDate(),
+				Assignment.class.getName(), assignment.getAssignmentId(),
+				assignment.getUuid(), 0, serviceContext.getAssetCategoryIds(),
+				serviceContext.getAssetTagNames(), true, true,
+				assignment.getCreateDate(), null, null, null,
+				ContentTypes.TEXT_HTML,
+				assignment.getTitle(serviceContext.getLocale()),
+				assignment.getDescription(serviceContext.getLocale()), null, null, null, 0, 0,
+				serviceContext.getAssetPriority());
+	}
+
+			
 	@Reference
 	AssignmentValidator _assignmentValidator;
 
